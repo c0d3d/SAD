@@ -19,4 +19,3 @@ https://www.researchgate.net/publication/319306895_3HAN_A_Deep_Neural_Network_fo
 We are also going to compare results of a network run with just article text as input, and the results of a network which was run with article content as well as meta information about the webpage it was found on. Currently, most of these “fake news detectors” only do their classification based on the text of the article. We hypothesize that these results could be improved if we leverage the “sketchy website affect”.
 Evaluation:
 We are going to separate the datasets into development, test, and train sets. Evaluation will be performed on the development set while training. The final results will be collected using the test set. We are going to measure success using a confusion matrix, and F-score.
-
