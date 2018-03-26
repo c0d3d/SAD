@@ -3,50 +3,53 @@ import tensorflow as tf
 import re
 
 class Model:
-    def __init__(self, title_ph, article_ph, training_op, embeddings, emb_ph, correct_ph):
+    def __init__(self, title_ph, article_ph,
+                 correct_ph, training_op, eval_op,
+                 embeddings, emb_ph):
         self.title_ph = title_ph
         self.article_ph = article_ph
-        self.training_op = training_op
-        self.embeddings = embeddings
-        self.emb_ph = emb_ph
         self.correct_ph = correct_ph
+        self.training_op = training_op
+        self.eval_op = eval_op
 
-    def run(self, title, article, is_fake):
-        init_OP = tf.global_variables_initializer()
-        sess = tf.Session()
-        the_idx_lookup, the_matrix = load_into_matrix(self.embeddings)
-        title_ids = [the_idx_lookup.get(x) for x in title]
-        article_ids = [the_idx_lookup.get(x) for x in article]
+        init_op = tf.global_variables_initializer()
 
-        print("Title ", title_ids, "Article", article_ids)
-        print("Initializing big ass matrix ...")
-        sess.run(init_OP, feed_dict={ self.emb_ph: the_matrix })
-        print("Running the training ...")
-        training_step = sess.run(self.training_op, feed_dict={
-            self.title_ph: title_ids,
-            self.article_ph: article_ids,
-            self.correct_ph: is_fake
+        self.word_2_idx = embeddings.get_word_2_idx()
+        self.sess = tf.Session()
+        self.sess.run(init_op, feed_dict={ emb_ph: embeddings.get_embedding_mat() })
+
+    def _convert_to_ids(self, word_list):
+        return [self.word_2_idx.get(x) for x in word_list]
+
+    def _run_batch(self, batch_titles, batch_bodies, batch_judgements, op):
+        batch_title_ids = map(self._convert_to_ids, batch_titles)
+        batch_body_ids = map(self._convert_to_ids, batch_bodies)
+        batch_judgment_ids = batch_judgements
+
+        return sess.run(op, feed_dict={
+            self.title_ph: batch_title_ids,
+            self.article_ph: batch_body_ids,
+            self.correct_ph: batch_judgment_ids
         })
 
-def load_into_matrix(keyed_vecs):
-    word_to_idx = {}
-    embedding_matrix = np.zeros((len(keyed_vecs.wv.vocab), 300))
-    for i in range(len(keyed_vecs.wv.vocab)):
-        word_to_idx[keyed_vecs.wv.index2word[i]] = i
-        embedding_vector = keyed_vecs.wv[keyed_vecs.wv.index2word[i]]
-        if embedding_vector is not None:
-            embedding_matrix[i] = embedding_vector
-    return (word_to_idx, embedding_matrix)
+    def run_train(self, model_input):
+        for tbatch, bbatch, jbatch in model:
+            self._run_batch(tbatch, bbatch, jbatch, self.training_op)
+
+    def run_eval(self, model_input):
+        ans = []
+        for tbatch, bbatch, _ in model:
+            ans.append(self._run_batch(tbatch, bbatch, [], self.eval_op))
+        return ans
 
 BATCH_SIZE = 1
 HIDDEN_LAYERS = 5
 
-
-def build_model(keyed_vecs):
-    mat_ph = tf.placeholder(tf.int32, shape=[3000000, 300])
-    embedding = tf.Variable(mat_ph, trainable=False)
-    article_ph = tf.placeholder(tf.int32, [BATCH_SIZE, None])
-    title_ph = tf.placeholder(tf.int32, [BATCH_SIZE, None])
+def build_model(embeddings_dat):
+    mat_ph = tf.placeholder(tf.int32, shape=[3000000, 300], name="Thicc_Matrix")
+    embedding = tf.Variable(mat_ph, trainable=False, name="Emb_Var")
+    article_ph = tf.placeholder(tf.int32, [BATCH_SIZE, None], name="Article_PH")
+    title_ph = tf.placeholder(tf.int32, [BATCH_SIZE, None], name="Title_PH")
 
     article_vectors = tf.nn.embedding_lookup(embedding, article_ph)
     title_vectors = tf.nn.embedding_lookup(embedding, title_ph)
@@ -63,10 +66,16 @@ def build_model(keyed_vecs):
     condensed = tf.matmul(output, bias_var)
     added = tf.reduce_sum(condensed, 1)
     output_tensor = tf.sigmoid(added)
-    correct_ph = tf.placeholder(tf.float32, [BATCH_SIZE, 1])
+    correct_ph = tf.placeholder(tf.float32, [BATCH_SIZE, 1], name="Correct_PH")
     cost_fun = tf.nn.softmax_cross_entropy_with_logits_v2(
         labels=correct_ph,
         logits=output_tensor)
 
     training_op = tf.train.GradientDescentOptimizer(0.5).minimize(cost_fun)
-    return Model(title_ph, article_ph, training_op, keyed_vecs, mat_ph, correct_ph)
+    return Model(title_ph,
+                 article_ph,
+                 correct_ph,
+                 training_op,
+                 output_tensor,
+                 embeddings_dat,
+                 mat_ph)
