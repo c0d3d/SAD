@@ -33,12 +33,12 @@ class Model:
         })
 
     def run_train(self, model_input):
-        for tbatch, bbatch, jbatch in model:
+        for tbatch, bbatch, jbatch in model_input:
             self._run_batch(tbatch, bbatch, jbatch, self.training_op)
 
     def run_eval(self, model_input):
         ans = []
-        for tbatch, bbatch, _ in model:
+        for tbatch, bbatch, _ in model_input:
             ans.append(self._run_batch(tbatch, bbatch, [], self.eval_op))
         return ans
 

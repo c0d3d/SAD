@@ -11,6 +11,7 @@ DEFAULT_EMBEDDINGS_PICKLE="embeddings.dat"
 
 parser = argparse.ArgumentParser(description='SAD!')
 subparsers = parser.add_subparsers(help="Commands", dest="cmd_type")
+subparsers.required = True
 
 # Build the embeddings
 parse_emb = subparsers.add_parser("embeddings", help="Construct the pickled embeddings")

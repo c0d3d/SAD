@@ -31,7 +31,7 @@ class EmbeddingsData:
     def load(fname):
         e = EmbeddingsData()
         with open(str(fname)+".idx", "rb") as f:
-            e.embedding_mat = np.fromfile(f)
+            e.embedding_mat = np.fromfile(f).reshape((3000000, 300))
         with open(str(fname)+".map", "rb") as f:
             e.word_2_idx = pickle.load(f)
         return e

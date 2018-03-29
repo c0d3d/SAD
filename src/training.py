@@ -1,16 +1,37 @@
-
+import csv
 
 class Data:
 
+    def __init__(self, train_iter, dev_iter, batch_size):
+        self.train = []
+        x = []
+        while True:
+            x = []
+            i = 0
+            nxt = next(train_iter, None)
+
+            while i < batch_size and nxt is not None:
+                x.append(tuple(nxt))
+                i+=1
+                nxt = next(train_iter, None)
+
+            self.train.append(x)
+
+            if nxt is None:
+                break
+        # TODO dev
+
     def test_input(self):
-        pass
+        return iter(self.train)
 
     def eval_input(self):
         pass
 
     @classmethod
     def make_data(cls, train_file, dev_file, batch_size):
-        pass
+        t_reader = csv.reader(train_file, delimiter="\t")
+        # TODO dev
+        return cls(t_reader, None, batch_size)
 
 class Training:
     def __init__(self, model, data, epoch_count):
@@ -20,7 +41,7 @@ class Training:
         self.cur_epoch = 0
 
     def has_more_epochs(self):
-        return self.cur_epoch < epoch_count
+        return self.cur_epoch < self.epoch_count
 
     def next_epoch(self):
         self.model.run_train(self.data.test_input())
