@@ -1,8 +1,20 @@
 import csv
 
+# def segment(y):
+#     splits = []
+#     for _ in range(len(y[0])):
+#         splits.append([])
+
+#     for z in y:
+#         for idx, w in enumerate(z):
+#             splits[idx % len(splits)].append(w)
+#     return tuple(splits)
+
+
 class Data:
 
     def __init__(self, train_iter, dev_iter, batch_size):
+        next(train_iter, None) # Skip header
         self.train = []
         x = []
         while True:
@@ -11,18 +23,18 @@ class Data:
             nxt = next(train_iter, None)
 
             while i < batch_size and nxt is not None:
-                x.append(tuple(nxt))
-                i+=1
+                x.append(tuple(nxt[1:]))
+                i += 1
                 nxt = next(train_iter, None)
 
-            self.train.append(x)
+            if len(x) > 0:
+                self.train.append(x)
 
             if nxt is None:
                 break
-        # TODO dev
 
     def test_input(self):
-        return iter(self.train)
+        return self.train
 
     def eval_input(self):
         pass

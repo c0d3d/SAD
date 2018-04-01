@@ -16,7 +16,11 @@ subparsers.required = True
 # Build the embeddings
 parse_emb = subparsers.add_parser("embeddings", help="Construct the pickled embeddings")
 parse_emb.add_argument("data", type=str, help="Binary blob for the word2vec pretrained vectors")
-parse_emb.add_argument("output", default=DEFAULT_EMBEDDINGS_PICKLE, nargs="?", type=str, help="Basename for the data files that will be output")
+parse_emb.add_argument("output",
+                       default=DEFAULT_EMBEDDINGS_PICKLE,
+                       nargs="?",
+                       type=str,
+                       help="Basename for the data files that will be output")
 
 # Run a training session
 parse_train = subparsers.add_parser("train", help="Run model training")
@@ -24,10 +28,14 @@ parse_train.add_argument("train_file", type=argparse.FileType('r'), help="File c
 parse_train.add_argument("dev_file", type=argparse.FileType('r'), help="File containing the dev data (format: TBD)")
 parse_train.add_argument("--batch-size", type=int, default=1, help="Training batch size")
 parse_train.add_argument("--epoch-count", type=int, default=5, help="Number of epochs for training")
-parse_train.add_argument("--embeddings-data-file", type=str, default=DEFAULT_EMBEDDINGS_PICKLE, help="Base name for the embeddings data", )
+parse_train.add_argument("--embeddings-data-file",
+                         type=str,
+                         default=DEFAULT_EMBEDDINGS_PICKLE,
+                         help="Base name for the embeddings data")
 
 # Run the model on some text
-parse_run = subparsers.add_parser("run", help="Run model on some text") # TODO
+parse_run = subparsers.add_parser("run",
+                                  help="Run model on some text")
 
 def main(f=None):
     args = parser.parse_args()

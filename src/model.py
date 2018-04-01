@@ -21,20 +21,25 @@ class Model:
     def _convert_to_ids(self, word_list):
         return [self.word_2_idx.get(x) for x in word_list]
 
-    def _run_batch(self, batch_titles, batch_bodies, batch_judgements, op):
-        batch_title_ids = map(self._convert_to_ids, batch_titles)
-        batch_body_ids = map(self._convert_to_ids, batch_bodies)
-        batch_judgment_ids = batch_judgements
+    def _run_batch(self, batch, op):
+        batch_title_ids = []
+        batch_body_ids = []
+        batch_judgment_ids = []
+        for title, body, judgment in batch:
+            print(judgment)
+            batch_title_ids.append(self._convert_to_ids(title))
+            batch_body_ids.append(self._convert_to_ids(body))
+            batch_judgment_ids.append(judgment)
 
-        return sess.run(op, feed_dict={
+        return self.sess.run(op, feed_dict={
             self.title_ph: batch_title_ids,
             self.article_ph: batch_body_ids,
             self.correct_ph: batch_judgment_ids
         })
 
     def run_train(self, model_input):
-        for tbatch, bbatch, jbatch in model_input:
-            self._run_batch(tbatch, bbatch, jbatch, self.training_op)
+        for batch in model_input:
+            self._run_batch(batch, self.training_op)
 
     def run_eval(self, model_input):
         ans = []
