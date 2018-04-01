@@ -7,10 +7,11 @@ import json
 
 def run(real_data, fake_data):
     for paper_url in real_data:
+        time.sleep(.01)
         paper = newspaper.build(paper_url['source-url'])
         for art in paper.articles:
-            art.download()
-            print(art.url)
+            time.sleep(.01)
+            print(paper_url['source-url'], '\t', art.url)
     # print("Setting papers", papers)
     # newspaper.news_pool.set(papers)
     # print("Joining ...")
