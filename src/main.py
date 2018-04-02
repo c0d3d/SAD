@@ -7,7 +7,7 @@ from training import Data, Training
 import argparse
 import sys
 
-DEFAULT_EMBEDDINGS_PICKLE="embeddings.dat"
+DEFAULT_EMBEDDINGS_PICKLE = "embeddings.dat"
 
 parser = argparse.ArgumentParser(description='SAD!')
 subparsers = parser.add_subparsers(help="Commands", dest="cmd_type")
@@ -41,14 +41,21 @@ def main(f=None):
     args = parser.parse_args()
     if args.cmd_type == "embeddings":
         build_embeddings(args.data, args.output)
-    elif args.cmd_type:
+    elif args.cmd_type == "train":
+        print("Loading embeddings ...")
         embeddings = EmbeddingsData.load(args.embeddings_data_file)
+        print("Loading the data ...")
         the_data = Data.make_data(args.train_file, args.dev_file, args.batch_size)
-        model = build_model(embeddings)
+        print("Building the model ...")
+        model = build_model(embeddings, args.batch_size)
         train_sess = Training.make_training(model, the_data, args.epoch_count)
         while train_sess.has_more_epochs():
-            eval_results = train_sess.next_epoch()
-            # TODO check evaluation results
+            print("Next epoch ...")
+            train_sess.next_epoch()
+        # TODO save model
+    else:
+        # ?
+        exit(1)
     return 0
 
 def build_embeddings(input_file, output_file):
