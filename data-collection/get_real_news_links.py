@@ -45,7 +45,7 @@ def get_entry_urls(url):
 
     for selector in zip(*selectors):
         bias_str = selector[1]['href']
-        bias_str = bias_str[bias_str.rfind('/')+1:]
+        bias_str = bias_str[bias_str.rfind('/') + 1:]
         yield {
             "source-url" : selector[0]['href'],
             "source-name" : selector[0].text,
