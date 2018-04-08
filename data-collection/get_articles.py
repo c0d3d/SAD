@@ -10,18 +10,18 @@ import requests
 def load_real(real_data):
     with open("articles_2.txt", 'w') as out:
         for paper_url in real_data:
-            time.sleep(.01)
             # print(paper_url['source-url'])
             paper = newspaper.build(paper_url['source-url'],
-                                    proxies={'http': 'http://127.0.0.1:9150',
-                                             'https': 'https://127.0.0.1:9151'},
-                                    browser_user_agent='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:59.0)',
-                                    memoize_articles=False,
-                                    follow_meta_refresh=True,
-                                    verbose=True)
-            paper.download()
+                                    # proxies={'http': 'http://127.0.0.1:9150',
+                                    #          'https': 'https://127.0.0.1:9151'},
+                                    browser_user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:59.0) Gecko/20100101 Firefox/59.0',
+                                    # memoize_articles=False,
+                                    # follow_meta_refresh=True,
+                                    # verbose=True)
+                                    )
+            # paper.download()
             for art in paper.articles:
-                time.sleep(.01)
+                time.sleep(.1)
                 print(paper_url['source-url'], art.url)
                 out.write('{}\t{}\n'.format(paper_url['source-url'], art.url))
 
