@@ -4,36 +4,38 @@ import newspaper
 import sys
 import time
 import json
-import requests
-
 
 def load_real(real_data):
-    with open("articles_2.txt", 'w') as out:
-        for paper_url in real_data:
-            # print(paper_url['source-url'])
-            paper = newspaper.build(paper_url['source-url'],
-                                    # proxies={'http': 'http://127.0.0.1:9150',
-                                    #          'https': 'https://127.0.0.1:9151'},
-                                    browser_user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:59.0) Gecko/20100101 Firefox/59.0',
-                                    # memoize_articles=False,
-                                    # follow_meta_refresh=True,
-                                    # verbose=True)
-                                    )
-            # paper.download()
-            for art in paper.articles:
-                time.sleep(.1)
-                print(paper_url['source-url'], art.url)
-                out.write('{}\t{}\n'.format(paper_url['source-url'], art.url))
+    papers = []
+    for paper_url in real_data:
+        print("Pre", paper_url['source-url'])
+        paper = newspaper.build(paper_url['source-url'],
+                                browser_user_agent='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:59.0)',
+                                verbose=True,
+                                timeout=250,
+                                dry=True,
+                                memoize_articles=False)
+        print(paper_url, paper)
+        papers.append(paper)
+#            paper.download()
+#            for art in paper.articles:
+#                time.sleep(.01)
+#                print(paper_url['source-url'], art.url)
+#                out.write('{}\t{}\n'.format(paper_url['source-url'], art.url))
 
-    # print("Setting papers", papers)
-    # newspaper.news_pool.set(papers)
-    # print("Joining ...")
-    # newspaper.news_pool.join()
-    # print("Should be done ...")
-    # for a in papers:
-    #     a.download()
-    #     for ar in a.articles:
-    #         print(ar.url)
+    print("Setting papers!")
+    newspaper.news_pool.set_papers(papers)
+    print("Joining ...")
+    try:
+        while True:
+            nxt = newspaper.news_pool.next_done()
+            nxt.print_summary()
+            for ar in nxt.articles:
+                print("Article URL", ar.url)
+    except Exception:
+        print("No more papers!")
+
+    print("Should be done ...")
 
 
 def load_fake(fake):
