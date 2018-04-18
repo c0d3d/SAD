@@ -73,6 +73,8 @@ if __name__ == "__main__":
             e['source-url'] = get_site_link(e['source-url'], e['source-name'])
             if e['source-url'] is None:
                 continue
+            else:
+                e['source-url'] = e['source-url'].strip().rstrip('/')
             output.append(e)
             time.sleep(0.15)
     json.dump(output, sys.stdout)

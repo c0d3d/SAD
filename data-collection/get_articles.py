@@ -1,11 +1,15 @@
-# 1/usr/bin/env python3
+#!/usr/bin/env python3
+import os
+import pickle
 import csv
 import newspaper
 import sys
 import time
 import json
+from concurrent.futures import as_completed, ThreadPoolExecutor
+from queue import Queue, Empty
 
-def load_real(real_data):
+def load_real(real_data, output_to):
     papers = []
     for paper_url in real_data:
         print("Pre", paper_url['source-url'])
@@ -17,23 +21,47 @@ def load_real(real_data):
                                 memoize_articles=False)
         print(paper_url, paper)
         papers.append(paper)
-#            paper.download()
-#            for art in paper.articles:
-#                time.sleep(.01)
-#                print(paper_url['source-url'], art.url)
-#                out.write('{}\t{}\n'.format(paper_url['source-url'], art.url))
 
-    print("Setting papers!")
-    newspaper.news_pool.set_papers(papers)
-    print("Joining ...")
-    try:
-        while True:
-            nxt = newspaper.news_pool.next_done()
-            nxt.print_summary()
-            for ar in nxt.articles:
-                print("Article URL", ar.url)
-    except Exception:
-        print("No more papers!")
+    counter = 0
+
+    def build_articles(paper):
+        def aux():
+            paper.build()
+            for a in paper.articles:
+                try:
+                    a.download()
+                    a.build()
+                except Exception as e:
+                    print(e)
+        return aux
+
+    def save_article(a):
+        return {
+            "url": a.url,
+            "source_url": a.source_url,
+            "text": a.text,
+            "html": str(a.html),
+            "tags": a.tags,
+            "summary": a.summary,
+            "keywords": a.keywords
+        }
+
+
+
+    futures = newspaper.news_pool.set(papers, fun=lambda x: build_articles(x))
+    for nxt in as_completed(futures):
+        for ar in futures[nxt].articles:
+            if ar.download_exception_msg:
+                print("LOOK======================================================")
+                print(ar.download_exception_msg)
+                print("END LOOK==================================================")
+            else:
+                print("Article !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                with open(os.path.join(output_to, str(counter) + ".pickle"), "wb+") as f:
+                    counter += 1
+                    pickler = pickle.Pickler(f)
+                    pickler.fast = True
+                    pickler.dump(save_article(ar))
 
     print("Should be done ...")
 
@@ -53,6 +81,6 @@ def load_fake(fake):
 if __name__ == "__main__":
     with open(sys.argv[1], "r") as real:
         with open(sys.argv[2], "r") as fake:
-            load_real(json.load(real))
+            load_real(json.load(real), sys.argv[3])
             # load_fake(fake)
     print("Done!")
